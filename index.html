@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Web3 Monetized Audio Catalog</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#111a33;
+      --panel2:#0f1730;
+      --muted:#9aa7c7;
+      --text:#e8eeff;
+      --line:rgba(255,255,255,.10);
+      --accent:#6c7cff;
+      --accent2:#00e5ff;
+      --danger:#ff4d6d;
+      --ok:#2ee59d;
+      --warn:#ffcc66;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(108,124,255,.25), transparent 60%),
+                  radial-gradient(900px 500px at 85% 10%, rgba(0,229,255,.18), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit}
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+    header{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      position:sticky;top:12px;z-index:50;backdrop-filter: blur(10px);
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 20px rgba(108,124,255,.25);
+      display:grid;place-items:center;font-weight:800;
+    }
+    nav{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      padding:8px 10px;border:1px solid var(--line);
+      border-radius:999px;background:rgba(255,255,255,.03);
+      color:var(--muted);font-size:13px;cursor:pointer;user-select:none;
+    }
+    .pill.active{border-color:rgba(108,124,255,.55);color:var(--text)}
+    .top-actions{display:flex;gap:10px;align-items:center}
+    .btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;border-radius:12px;
+      cursor:pointer;font-weight:650;
+      transition:.15s transform, .15s opacity, .15s border-color;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(108,124,255,.5)}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);border-color:transparent}
+    .btn.ghost{background:transparent}
+    .btn.danger{background:rgba(255,77,109,.12);border-color:rgba(255,77,109,.35)}
+    .btn.ok{background:rgba(46,229,157,.12);border-color:rgba(46,229,157,.35)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .wallet{
+      display:flex;align-items:center;gap:10px;
+      border:1px solid var(--line);
+      padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.03);
+      color:var(--muted);font-size:13px;
+      max-width: 320px;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.25)}
+    .dot.on{background:var(--ok);box-shadow:0 0 0 6px rgba(46,229,157,.12)}
+    .wallet code{color:var(--text)}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      header{position:relative;top:auto}
+    }
+    .panel{
+      border:1px solid var(--line);border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panel .hd{
+      padding:14px 14px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.08);
+    }
+    .panel .hd h2{margin:0;font-size:15px;letter-spacing:.2px}
+    .panel .bd{padding:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input, select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.20);
+      color:var(--text);
+      outline:none;
+    }
+    input::placeholder, textarea::placeholder{color:rgba(154,167,199,.7)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:720px){.split{grid-template-columns:1fr}}
+    .hint{color:var(--muted);font-size:12px;line-height:1.35}
+    .badge{
+      font-size:12px;padding:6px 8px;border-radius:999px;
+      border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);
+    }
+    .badge.ok{border-color:rgba(46,229,157,.35);color:rgba(46,229,157,.95)}
+    .badge.warn{border-color:rgba(255,204,102,.35);color:rgba(255,204,102,.95)}
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (max-width:1050px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:650px){.cards{grid-template-columns:1fr}}
+    .card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(0,0,0,.18);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 280px;
+    }
+    .cover{
+      height:140px;
+      background:linear-gradient(135deg, rgba(108,124,255,.25), rgba(0,229,255,.18));
+      position:relative;
+      overflow:hidden;
+    }
+    .cover img{
+      width:100%;height:100%;
+      object-fit:cover;display:block;
+      filter:saturate(1.05) contrast(1.02);
+    }
+    .meta{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .title{font-weight:800}
+    .sub{color:var(--muted);font-size:13px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{
+      font-size:12px;padding:5px 8px;border-radius:999px;
+      border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);
+    }
+    .card .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+    .mini{
+      font-size:13px;padding:9px 10px;border-radius:12px;
+    }
+    .playerbar{
+      border-top:1px solid var(--line);
+      padding:10px 12px;
+      display:flex;align-items:center;gap:10px;
+      background:rgba(0,0,0,.12);
+    }
+    .playerbar audio{width:100%}
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      overflow:hidden;
+      border-radius:12px;
+    }
+    .table th,.table td{
+      padding:10px 10px;border-bottom:1px solid var(--line);text-align:left;
+    }
+    .table th{color:var(--muted);font-weight:700;font-size:12px}
+    .kpi{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;
+    }
+    .kpi .box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(0,0,0,.16);
+    }
+    .kpi .label{color:var(--muted);font-size:12px}
+    .kpi .val{font-size:20px;font-weight:900;margin-top:6px}
+    .toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(10,14,30,.85);backdrop-filter: blur(10px);
+      color:var(--text);box-shadow: var(--shadow);
+      font-size:13px;opacity:0;pointer-events:none;transition:.2s opacity, .2s transform;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+    dialog{
+      border:none;border-radius:18px;
+      padding:0;
+      width:min(720px, 92vw);
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop{background:rgba(0,0,0,.6)}
+    .dlg-hd{padding:14px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .dlg-hd h3{margin:0;font-size:15px}
+    .dlg-bd{padding:14px}
+    .dlg-ft{padding:14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">W3</div>
+        <div>
+          <div style="font-weight:900;letter-spacing:.2px">Web3 Monetized Audio Catalog</div>
+          <div class="small">Upload • License • Earn • Download (POL-gated)</div>
+        </div>
+      </div>
+
+      <nav id="nav">
+        <div class="pill active" data-route="browse">Browse</div>
+        <div class="pill" data-route="my">My Catalog</div>
+        <div class="pill" data-route="royalties">Royalties</div>
+        <div class="pill" data-route="admin">Admin</div>
+      </nav>
+
+      <div class="top-actions">
+        <div class="wallet" title="Wallet connection is simulated for demo">
+          <span class="dot" id="walletDot"></span>
+          <span id="walletLabel">Not connected</span>
+        </div>
+        <button class="btn primary" id="btnConnect">Connect Wallet</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Main -->
+      <section class="panel" id="mainPanel">
+        <div class="hd">
+          <h2 id="mainTitle">Browse Music</h2>
+          <span class="badge" id="modeBadge">demo</span>
+        </div>
+        <div class="bd">
+          <!-- Browse Controls -->
+          <div id="browseControls">
+            <div class="row" style="justify-content:space-between;align-items:flex-end">
+              <div style="flex:1;min-width:240px">
+                <label class="small">Search</label>
+                <input id="searchInput" placeholder="Search track or artist..." />
+              </div>
+              <div style="width:220px">
+                <label class="small">Genre</label>
+                <select id="genreFilter"></select>
+              </div>
+              <div style="width:220px">
+                <label class="small">Sort</label>
+                <select id="sortSelect">
+                  <option value="newest">Newest</option>
+                  <option value="title">Title (A–Z)</option>
+                  <option value="priceLow">Price (low)</option>
+                  <option value="priceHigh">Price (high)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:12px" class="cards" id="cardGrid"></div>
+
+            <div style="margin-top:12px" class="hint">
+              Tip: This demo stores uploads in your browser. For real Web3, store media+metadata on Arweave/IPFS and keep only URIs + rights on-chain.
+            </div>
+          </div>
+
+          <!-- My Catalog -->
+          <div id="myCatalog" style="display:none">
+            <div class="row" style="justify-content:space-between">
+              <div class="hint">Tracks you uploaded (by connected wallet).</div>
+              <button class="btn mini ok" id="btnOpenUpload">Upload New Track</button>
+            </div>
+            <div style="margin-top:12px;overflow:auto">
+              <table class="table" id="myTable"></table>
+            </div>
+          </div>
+
+          <!-- Royalties -->
+          <div id="royaltiesView" style="display:none">
+            <div class="kpi">
+              <div class="box">
+                <div class="label">This Month (simulated)</div>
+                <div class="val" id="kpiMonth">0.00</div>
+                <div class="small">Credits</div>
+              </div>
+              <div class="box">
+                <div class="label">Lifetime (simulated)</div>
+                <div class="val" id="kpiLife">0.00</div>
+                <div class="small">Credits</div>
+              </div>
+            </div>
+            <div style="margin-top:12px" class="panel" style="background:rgba(0,0,0,.12)">
+              <div class="hd" style="border-bottom:1px solid var(--line)">
+                <h2 style="font-size:13px">Royalty Events</h2>
+                <button class="btn mini" id="btnWithdraw">Withdraw</button>
+              </div>
+              <div class="bd" style="max-height:280px;overflow:auto" id="royaltyLog"></div>
+            </div>
+            <div class="hint" style="margin-top:10px">
+              In production, royalty events come from on-chain transfers (ERC-2981 + custom split contract) + platform accounting.
+            </div>
+          </div>
+
+          <!-- Admin -->
+          <div id="adminView" style="display:none">
+            <div class="hint">
+              Admin is password-based for demo. In production, protect admin actions using wallet signatures, role-based access, or a DAO.
+            </div>
+            <div class="split" style="margin-top:10px">
+              <div>
+                <label class="small">Admin password</label>
+                <input id="adminPass" placeholder="Enter admin password" type="password" />
+                <div class="row" style="margin-top:10px">
+                  <button class="btn mini primary" id="btnAdminLogin">Unlock Admin</button>
+                  <button class="btn mini ghost" id="btnSetAdminPass">Set/Change Password</button>
+                </div>
+                <div class="hint" style="margin-top:8px">
+                  Default password (if not set): <b>admin123</b>
+                </div>
+              </div>
+              <div>
+                <div class="panel" style="background:rgba(0,0,0,.12)">
+                  <div class="hd"><h2 style="font-size:13px">Admin Tools</h2></div>
+                  <div class="bd">
+                    <button class="btn mini danger" id="btnResetDemo">Reset Demo Data</button>
+                    <div class="hint" style="margin-top:10px">
+                      Reset wipes the local catalog + purchases on this device.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px">
+              <div class="badge" id="adminStatus">Admin: locked</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Sidebar -->
+      <aside class="panel">
+        <div class="hd">
+          <h2>License & Access</h2>
+          <span class="badge warn" id="polBadge">POL: inactive</span>
+        </div>
+        <div class="bd">
+          <div class="hint">
+            Downloads are gated by ownership/license (POL simulation). Buy/unlock a track to download.
+          </div>
+
+          <div style="margin-top:12px" class="panel" style="background:rgba(0,0,0,.12)">
+            <div class="hd"><h2 style="font-size:13px">Proof of License</h2></div>
+            <div class="bd" id="polBox">
+              <div class="row">
+                <span class="badge" id="polWallet">Wallet: —</span>
+                <span class="badge" id="polCount">Licenses: 0</span>
+              </div>
+              <div style="margin-top:10px" class="hint">
+                A license = wallet has permission to download/use a specific track.
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="panel" style="background:rgba(0,0,0,.12)">
+            <div class="hd"><h2 style="font-size:13px">Quick Actions</h2></div>
+            <div class="bd">
+              <button class="btn mini ok" id="btnSeedDemo">Load Demo Catalog</button>
+              <button class="btn mini" id="btnExport">Export Catalog JSON</button>
+              <button class="btn mini" id="btnImport">Import Catalog JSON</button>
+              <input type="file" id="importFile" accept="application/json" hidden />
+              <div class="hint" style="margin-top:10px">
+                Export/import moves metadata between devices (still local/off-chain).
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Upload/Edit Dialog -->
+  <dialog id="dlgUpload">
+    <div class="dlg-hd">
+      <h3 id="dlgTitle">Upload Track</h3>
+      <button class="btn mini ghost" id="btnCloseDlg">Close</button>
+    </div>
+    <div class="dlg-bd">
+      <div class="split">
+        <div>
+          <label class="small">Track title</label>
+          <input id="fTitle" placeholder="e.g., Afro Soul Vibes" />
+        </div>
+        <div>
+          <label class="small">Artist</label>
+          <input id="fArtist" placeholder="e.g., DJ Kiongozi" />
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:10px">
+        <div>
+          <label class="small">Genre</label>
+          <select id="fGenre"></select>
+        </div>
+        <div>
+          <label class="small">Price (credits)</label>
+          <input id="fPrice" type="number" min="0" step="0.01" placeholder="e.g., 2.50" />
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:10px">
+        <div>
+          <label class="small">Audio file (MP3/WAV)</label>
+          <input id="fAudio" type="file" accept="audio/*" />
+        </div>
+        <div>
+          <label class="small">Cover image (JPG/PNG)</label>
+          <input id="fCover" type="file" accept="image/*" />
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label class="small">Description</label>
+        <textarea id="fDesc" rows="3" placeholder="Short description..."></textarea>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        Upload stores files in your browser for demo. Large files may exceed browser storage limits.
+      </div>
+
+      <input id="fId" hidden />
+    </div>
+    <div class="dlg-ft">
+      <button class="btn danger" id="btnDeleteInDlg" style="display:none">Delete</button>
+      <button class="btn" id="btnSaveDraft">Save</button>
+      <button class="btn primary" id="btnSaveAndClose">Save & Close</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+    /***********************
+     * Web3 Monetized Audio Catalog (Demo)
+     * - No external libs
+     * - localStorage persistence
+     * - Upload/Edit/Delete tracks
+     * - Wallet + purchase + POL gating (simulated)
+     ***********************/
+
+    // ====== Storage Keys ======
+    const KEY_CATALOG = "w3_catalog_v1";
+    const KEY_WALLET  = "w3_wallet_v1";
+    const KEY_OWNED   = "w3_owned_v1";      // { wallet: { trackId: true } }
+    const KEY_ADMINP  = "w3_admin_pass_v1"; // string
+    const KEY_ADMINOK = "w3_admin_ok_v1";   // "1" for current session
+    const KEY_ROYLOG  = "w3_roylog_v1";     // { wallet: [events] }
+
+    const GENRES = ["All", "Afrobeat", "Hip-Hop", "Reggae", "Dancehall", "EDM", "Amapiano", "Gospel", "Jazz", "R&B", "Lofi", "Pop", "Rock", "Traditional"];
+
+    // ====== State ======
+    let route = "browse";
+    let catalog = loadCatalog();
+    let currentAudio = null;
+
+    // ====== Elements ======
+    const nav = document.getElementById("nav");
+    const mainTitle = document.getElementById("mainTitle");
+    const modeBadge = document.getElementById("modeBadge");
+
+    const browseControls = document.getElementById("browseControls");
+    const myCatalogView = document.getElementById("myCatalog");
+    const royaltiesView = document.getElementById("royaltiesView");
+    const adminView = document.getElementById("adminView");
+
+    const searchInput = document.getElementById("searchInput");
+    const genreFilter = document.getElementById("genreFilter");
+    const sortSelect = document.getElementById("sortSelect");
+    const cardGrid = document.getElementById("cardGrid");
+
+    const btnConnect = document.getElementById("btnConnect");
+    const walletDot = document.getElementById("walletDot");
+    const walletLabel = document.getElementById("walletLabel");
+
+    const polBadge = document.getElementById("polBadge");
+    const polWallet = document.getElementById("polWallet");
+    const polCount = document.getElementById("polCount");
+
+    const btnSeedDemo = document.getElementById("btnSeedDemo");
+    const btnExport = document.getElementById("btnExport");
+    const btnImport = document.getElementById("btnImport");
+    const importFile = document.getElementB
